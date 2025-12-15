@@ -5,50 +5,43 @@ services:
   # 1. Servicio de la Aplicación Java (Spring Boot)
   # ----------------------------------------
   spring-app:
-    # Usa la imagen que ya construiste (alomia_leccion2)
-    image: alomia_leccion2
-    # El nombre que usarás para acceder al contenedor si lo necesitas
+    # CLAVE: Usa el nombre de tu repositorio en Docker Hub.
+    image: jsalomia/purchase-order-service
     container_name: alomia_app
-    # Mapea el puerto 8001 del contenedor al 8001 de tu máquina
     ports:
       - "8001:8001"
-    # Variables de entorno definidas en tu application.properties
     environment:
-      # Las credenciales de la DB que estás usando
       DB_USER: AppRoot
       DB_PWS: abcd
-      # Esta variable ya no es necesaria si usas el nombre del servicio en la URL
-      # DB_HOST: mysql-sisdb2025
-    # Dependencia: Asegura que MySQL esté levantado antes de iniciar la app
+    # CLAVE: Espera a que la base de datos esté 'healthy' (lista para conexiones).
     depends_on:
-      - db-mysql
+      db-mysql:
+        condition: service_healthy
 
   # ----------------------------------------
   # 2. Servicio de la Base de Datos MySQL
   # ----------------------------------------
   db-mysql:
-    # El nombre de servicio es CRUCIAL, ya que Spring Boot lo usará como HOST
     container_name: sisdb2025_container
-    # El nombre de host que usa tu app de Java para conectarse a esta DB:
-    # jdbc:mysql://mysql-sisdb2025:3306/sisdb2025
     hostname: mysql-sisdb2025
-    # Usaremos la última versión de MySQL
     image: mysql:8.0
-    # Mapeamos el puerto 3306 al puerto 3307 de tu máquina
-    # para evitar conflictos con tu MySQL local (host)
     ports:
       - "3307:3306"
     environment:
-      # La base de datos que se creará automáticamente al iniciar
       MYSQL_DATABASE: sisdb2025
-      # La contraseña para el usuario 'root' (requerida por el contenedor MySQL)
       MYSQL_ROOT_PASSWORD: rootpassword
-      # El usuario y contraseña que definiste en Spring Boot
       MYSQL_USER: AppRoot
       MYSQL_PASSWORD: abcd
-    # Mantenemos los datos de la DB persistentes en tu disco duro (volumen)
     volumes:
       - dbdata:/var/lib/mysql
+
+    # CLAVE: Define el chequeo de salud para que Spring Boot sepa cuándo conectarse.
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
+      interval: 10s # Chequea cada 10 segundos
+      timeout: 5s   # Espera 5 segundos por respuesta
+      retries: 10   # Reintenta 10 veces antes de fallar
+      start_period: 30s # Da 30s iniciales para que MySQL se configure
 
 # ----------------------------------------
 # 3. Volúmenes (Persistencia de Datos)

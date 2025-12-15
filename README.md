@@ -1,184 +1,109 @@
-Link docker hub: https://hub.docker.com/repository/docker/jsalomia/purchase-order-service/general
 
-## Clonar el repositorio
+````md
+# Purchase Order Service
+
+Microservicio backend desarrollado con **Spring Boot** para la gestión y consulta de órdenes de compra, desplegado mediante **Docker y Docker Compose**.
+
+---
+
+## 🐳 Docker Hub
+
+**Imagen disponible en Docker Hub:**  
+👉 https://hub.docker.com/repository/docker/jsalomia/purchase-order-service/general
+
+---
+
+## ⚙️ 1. Requisitos Previos
+
+El único requisito para ejecutar este proyecto es tener instalado y en ejecución:
+
+- **Docker Desktop** (o Docker CLI)
+
+---
+
+## 🚀 2. Ejecución del Proyecto
+
+El entorno completo (aplicación + base de datos) se levanta con un solo comando usando Docker Compose.
+
+### 2.1 Clonar el Repositorio
+
+Obtenga el código fuente del proyecto:
 
 ```bash
 git clone https://github.com/3788-jsalomia/alomia_leccion2.git
-cd tu-repositorio
+cd alomia_leccion2
+````
+
+### 2.2 Iniciar el Stack de Contenedores
+
+La aplicación (`jsalomia/purchase-order-service`) y la base de datos (`mysql:8.0`) se descargarán automáticamente desde Docker Hub.
+
+Ejecute el siguiente comando en el directorio donde se encuentra el archivo `docker-compose.yml`:
+
+```bash
+docker compose up -d
 ```
+
+> **Nota:**
+> La configuración incluye un **healthcheck**, el cual asegura que la aplicación Spring Boot espere a que el servidor MySQL esté completamente operativo antes de iniciar, evitando errores de conexión durante el arranque.
+
+### 2.3 Verificación de Inicio
+
+Para verificar que la aplicación se haya iniciado correctamente, revise los logs del contenedor:
+
+```bash
+docker compose logs -f spring-app
+```
+
+Busque el mensaje final donde Spring indica que **Tomcat ha iniciado correctamente**.
 
 ---
 
-## Configuración del proyecto
+## 🌐 3. Endpoints Disponibles
 
-### Variables de entorno (opcional)
+El microservicio estará disponible en:
 
-Si usas base de datos externa o Docker, puedes definir variables de entorno:
-
-```bash
-DB_HOST=localhost
-DB_PORT=3306
-DB_NAME=purchase_orders
-DB_USER=root
-DB_PASSWORD=1234
 ```
-
-También puedes configurarlas directamente en `application.yml` o `application.properties`.
-
----
-
-## Ejecutar la aplicación SIN Docker (modo local)
-
-### Compilar el proyecto
-
-```bash
-mvn clean package
+http://localhost:8001
 ```
-
-### Ejecutar la aplicación
-
-```bash
-mvn spring-boot:run
-```
-
-O usando el JAR generado:
-
-```bash
-java -jar target/purchase-orders-api.jar
-```
-
-### URL base
-
-```text
-http://localhost:8080/api/v1/purchase-orders
-```
-
----
-
-## Ejecutar la aplicación CON Docker
-
-### Construir la imagen Docker
-
-```bash
-docker build -t tu-usuario/purchase-orders-api:1.0.0 .
-```
-
-### Ejecutar el contenedor
-
-```bash
-docker run -p 8080:8080 \
-  -e DB_HOST=host.docker.internal \
-  -e DB_PORT=3306 \
-  -e DB_NAME=purchase_orders \
-  -e DB_USER=root \
-  -e DB_PASSWORD=secret \
-  tu-usuario/purchase-orders-api:1.0.0
-```
-
----
-
-## Ejecutar con Docker Compose (recomendado)
-
-### docker-compose.yml (ejemplo)
-
-```yaml
-version: "3.9"
-
-services:
-  mysql:
-    image: mysql:8
-    container_name: mysql-po
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: secret
-      MYSQL_DATABASE: purchase_orders
-    ports:
-      - "3306:3306"
-    volumes:
-      - mysql_data:/var/lib/mysql
-
-  api:
-    image: tu-usuario/purchase-orders-api:1.0.0
-    container_name: purchase-orders-api
-    ports:
-      - "8080:8080"
-    depends_on:
-      - mysql
-    environment:
-      DB_HOST: mysql
-      DB_PORT: 3306
-      DB_NAME: purchase_orders
-      DB_USER: root
-      DB_PASSWORD: secret
-
-volumes:
-  mysql_data:
-```
-
-### Levantar los servicios
-
-```bash
-docker-compose up -d
-```
-
----
-
-## Usar la imagen desde Docker Hub
-
-### Descargar la imagen
-
-```bash
-docker pull tu-usuario/purchase-orders-api:1.0.0
-```
-
-### Ejecutar la imagen
-
-```bash
-docker run -p 8080:8080 tu-usuario/purchase-orders-api:1.0.0
-```
-
----
-
-## Endpoints disponibles
 
 ### Obtener órdenes con filtros
 
 ```http
-GET /api/v1/purchase-orders
+GET http://localhost:8001/api/v1/purchase-orders
 ```
 
 ### Filtros soportados
 
-| Parámetro | Tipo          | Descripción        |
-| --------- | ------------- | ------------------ |
-| q         | String        | Búsqueda por texto |
-| status    | Enum          | Estado de la orden |
-| currency  | Enum          | USD, EUR           |
-| minTotal  | BigDecimal    | Monto mínimo       |
-| maxTotal  | BigDecimal    | Monto máximo       |
-| from      | LocalDateTime | Fecha inicio       |
-| to        | LocalDateTime | Fecha fin          |
+| Parámetro  | Tipo          | Descripción                                  |
+| ---------- | ------------- | -------------------------------------------- |
+| `q`        | String        | Búsqueda por texto (ej. nombre de proveedor) |
+| `status`   | Enum          | Estado de la orden                           |
+| `currency` | Enum          | Valores permitidos: **USD, EUR**             |
+| `minTotal` | BigDecimal    | Monto total mínimo                           |
+| `maxTotal` | BigDecimal    | Monto total máximo                           |
+| `from`     | LocalDateTime | Fecha de inicio del rango                    |
+| `to`       | LocalDateTime | Fecha de fin del rango                       |
 
 ### Ejemplo de uso
 
 ```http
-GET /api/v1/purchase-orders?q=acme&currency=USD&minTotal=100&from=2025-01-01T00:00:00&to=2025-06-30T23:59:59
+GET http://localhost:8001/api/v1/purchase-orders?q=acme&currency=USD&minTotal=100&from=2025-01-01T00:00:00&to=2025-06-30T23:59:59
 ```
 
 ---
 
-## Validaciones implementadas
+## 🛡️ 4. Validaciones y Manejo de Errores
 
-* currency: solo valores permitidos (USD, EUR) → 400 si es inválido
-* minTotal >= 0
-* maxTotal >= 0
-* from <= to → 400 Bad Request
+### Validaciones Implementadas
 
----
+* `currency`: solo acepta los valores permitidos (`USD`, `EUR`).
+* `minTotal` y `maxTotal` deben ser mayores o iguales a cero.
+* `from` debe ser menor o igual a `to` (`from <= to`).
 
-## Manejo de errores
+### Estructura de Error
 
-La API retorna errores con estructura clara:
+La API retorna errores con una estructura JSON clara y descriptiva:
 
 ```json
 {
@@ -190,27 +115,46 @@ La API retorna errores con estructura clara:
 
 ---
 
-## Tecnologías utilizadas
+## 📚 5. Tecnologías Utilizadas
 
-* Java 17
-* Spring Boot
-* Spring Data JPA
-* Hibernate
-* MySQL
-* Docker
-* Maven
+| Componente    | Versión / Tipo              |
+| ------------- | --------------------------- |
+| Lenguaje      | Java 17                     |
+| Framework     | Spring Boot                 |
+| Persistencia  | Spring Data JPA / Hibernate |
+| Base de Datos | MySQL 8                     |
+| Orquestación  | Docker Compose              |
 
----
+### Enlaces de Interés
 
-## Autor
-
-Proyecto académico desarrollado para prácticas de arquitectura backend con Spring Boot y Docker.
+* **Docker Hub:** [https://hub.docker.com/repository/docker/jsalomia/purchase-order-service/general](https://hub.docker.com/repository/docker/jsalomia/purchase-order-service/general)
 
 ---
 
-Si quieres, en el siguiente mensaje puedo:
+## ❌ 6. Detener y Limpiar el Entorno
 
-* Adaptar el README a **formato académico**
-* Ajustarlo a **microservicios**
-* Añadir sección de **arquitectura**
-* Hacer un README **más corto** para entrega universitaria
+Para detener y eliminar los contenedores:
+
+```bash
+docker compose down
+```
+
+Para eliminar también el volumen de datos persistentes de MySQL:
+
+```bash
+docker compose down -v
+```
+
+---
+
+## 👨‍💻 Autor
+
+Proyecto académico desarrollado para prácticas de **arquitectura backend** utilizando **Spring Boot y Docker**.
+
+```
+
+Si quieres, también puedo:
+- Ajustarlo a **estándar profesional (empresa)**  
+- Simplificar el README para **entrega académica**  
+- Traducirlo al **inglés**
+```
