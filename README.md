@@ -3,7 +3,7 @@ Link docker hub: https://hub.docker.com/repository/docker/jsalomia/purchase-orde
 ## Clonar el repositorio
 
 ```bash
-git clone https://github.com/tu-usuario/tu-repositorio.git
+git clone https://github.com/3788-jsalomia/alomia_leccion2.git
 cd tu-repositorio
 ```
 
