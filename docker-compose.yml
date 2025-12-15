@@ -6,7 +6,7 @@ services:
   # ----------------------------------------
   spring-app:
     # CLAVE: Usa el nombre de tu repositorio en Docker Hub.
-    image: jsalomia/purchase-order-service
+    image: jsalomia/purchase-order-service:1.1.0
     container_name: alomia_app
     ports:
       - "8001:8001"
